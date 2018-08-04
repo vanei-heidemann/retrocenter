@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" "http://www.logiqx.com/Dats/datafile.dtd">
+
+<datafile>
+    <header>
+        <name>Nintendo 64 - Games</name>
+        <description>Nintendo 64 - Games (TOSEC-v2015-05-27)</description>
+        <category>TOSEC</category>
+        <version>2015-05-27</version>
+        <author>Cassiel - Yori Yoshizuki</author>
+        <email>contact@tosecdev.org</email>
+        <homepage>TOSEC</homepage>
+        <url>http://www.tosecdev.org/</url>
+    </header>
+    <game name="1080 Snowboarding (1998)(Nintendo)(EU)(M4)" isbios="no" cloneof="1080 Snowboarding (1998)(Nintendo)"
+          romof="1080 Snowboarding" sampleof="1080 Snowboarding sample">
+        <comment>No Comment</comment>
+        <description>1080 Snowboarding (1998)(Nintendo)(EU)(M4)</description>
+        <year>1998</year>
+        <manufacturer>Nintendo</manufacturer>
+        <rom name="1080 Snowboarding (1998)(Nintendo)(EU)(M4).bin" size="16777216" crc="75a21679"
+             md5="632c98cf281cda776e66685b278a4fa6" sha1="637d92b08dbfe7c2f9d5e338835b1fce5f4a87d0"/>
+        <release name="release 1" region="world" language="en" date="1998" default="yes"/>
+        <biosset name="biosset 1" description="biosset 01" default="yes"/>
+        <disk name="1080 Snowboarding (1998)(Nintendo)(EU)(M4).dsk" md5="632c98cf281cda776e66685b278a4fa6"
+              sha1="637d92b08dbfe7c2f9d5e338835b1fce5f4a87d0"/>
+        <sample name="1080 sample"/>
+        <archive name="1080 archive"/>
+    </game>
+</datafile>
