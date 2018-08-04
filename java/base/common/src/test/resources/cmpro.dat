@@ -1,0 +1,30 @@
+clrmamepro (
+	name "Sony - PlayStation Vita"
+	description "Sony - PlayStation Vita"
+	version 20170114-224204
+	author "Densetsu, einstein95, Gefflon, Hiccup, jimmsu, Money_114, SonGoku, xuom2, zg"
+	homepage "No-Intro"
+	url "http://www.no-intro.org"
+)
+
+game (
+	name "Aegis of Earth - Protonovus Assault (USA)"
+	description "Aegis of Earth - Protonovus Assault (USA)"
+	year "2016"
+	serial "PCSE-00844"
+	manufacturer "Manufacturer 01"
+	cloneof "cloneof 01"
+	romof "romof 01"
+	sampleof "sampleof 01"
+	sample "sample 01"
+	disk ( name = "disk 01" sha1 9E58A114387A4DAF2033063C836EFEFDFF4EEE58 md5 1293854EC3B83DABA1595249CA637725 )
+	rom ( name "Aegis of Earth - Protonovus Assault (USA).vpk" size 825418380 crc BBA209A4 md5 1293854EC3B83DABA1595249CA637725 sha1 9E58A114387A4DAF2033063C836EFEFDFF4EEE58 region Brazil flags verified )
+)
+
+resource (
+	name "Aegis of Earth - Protonovus Assault (JP)"
+	description "Aegis of Earth - Protonovus Assault (JP)"
+	year "2016"
+	manufacturer "Manufacturer 01"
+	rom ( name "Aegis of Earth - Protonovus Assault (JP).vpk" size 825418380 crc BBA209A4 md5 1293854EC3B83DABA1595249CA637725 sha1 9E58A114387A4DAF2033063C836EFEFDFF4EEE58 region Brazil flags verified )
+)
