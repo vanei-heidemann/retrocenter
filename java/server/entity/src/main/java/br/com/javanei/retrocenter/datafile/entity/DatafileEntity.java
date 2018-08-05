@@ -1,5 +1,7 @@
 package br.com.javanei.retrocenter.datafile.entity;
 
+import br.com.javanei.retrocenter.platform.entity.PlatformEntity;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -66,6 +70,10 @@ public class DatafileEntity implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.REMOVE}, mappedBy = "datafile")
     private Set<DatafileArtifactEntity> artifacts = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH, optional = true)
+    @JoinColumn(name = "PLATFORM_ID")
+    private PlatformEntity platform;
 
     public DatafileEntity() {
     }
@@ -195,6 +203,14 @@ public class DatafileEntity implements Serializable {
 
     public void setArtifacts(Set<DatafileArtifactEntity> artifacts) {
         this.artifacts = artifacts;
+    }
+
+    public PlatformEntity getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(PlatformEntity platform) {
+        this.platform = platform;
     }
 
     @Override
