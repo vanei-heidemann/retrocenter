@@ -3,6 +3,7 @@ package br.com.javanei.retrocenter.datafile.api;
 import br.com.javanei.retrocenter.ErrorResponse;
 import br.com.javanei.retrocenter.common.DatafileCatalogEnum;
 import br.com.javanei.retrocenter.common.PaginatedResult;
+import br.com.javanei.retrocenter.common.PlatformNotFoundException;
 import br.com.javanei.retrocenter.datafile.common.Datafile;
 import br.com.javanei.retrocenter.datafile.common.DatafileObject;
 import br.com.javanei.retrocenter.datafile.common.Parser;
@@ -23,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -83,6 +85,18 @@ public class DatafileRest {
             return ResponseEntity.ok(vo.toFile());
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @RequestMapping(value = "/{id}/platform", method = RequestMethod.PUT, produces = MediaType.APPLICATION_XML_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ApiOperation(value = "Updated datafile")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 404, message = "Datafile or platform not found")
+    })
+    public ResponseEntity<DatafileDTO> setPlatformInDatafile(@PathVariable Long id, @RequestBody(required = true) DatafilePlatformNameDTO platformName) throws PlatformNotFoundException {
+        LOG.info("setPlatformInDatafile(" + id + ", " + platformName + ")");
+        return new ResponseEntity(service.changeDatafilePlatform(id, platformName.getPlatformName()), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)

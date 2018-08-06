@@ -21,6 +21,7 @@ import br.com.javanei.retrocenter.datafile.logiqx.service.LogiqxService;
 import br.com.javanei.retrocenter.datafile.mame.Mame;
 import br.com.javanei.retrocenter.datafile.mame.service.MameService;
 import br.com.javanei.retrocenter.datafile.persistence.DatafileDAO;
+import br.com.javanei.retrocenter.platform.service.PlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,8 @@ public class DatafileService {
     private RetrocenterDatafileService retrocenterDatafileService;
     @Autowired
     private DatafileDAO datafileDAO;
+    @Autowired
+    private PlatformService platformService;
 
     private static DatafileDTO toVO(DatafileEntity entity) {
         DatafileDTO datafile = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(),
@@ -136,13 +139,7 @@ public class DatafileService {
         List<DatafileEntity> l = datafileDAO.findAll();
         List<DatafileDTO> r = new ArrayList<>(l.size());
         for (DatafileEntity entity : l) {
-            DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
-                    entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
-                    entity.getComment(), entity.getId());
-            if (entity.getPlatform() != null) {
-                dto.setPlatformName(entity.getPlatform().getName());
-            }
-            r.add(dto);
+            r.add(entityToDTO(entity));
         }
         return r;
     }
@@ -165,14 +162,23 @@ public class DatafileService {
         }
         PaginatedResult<DatafileDTO> r = new PaginatedResult<>(page > 0, l.hasNext());
         for (DatafileEntity entity : l.getContent()) {
-            DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
-                    entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
-                    entity.getComment(), entity.getId());
-            if (entity.getPlatform() != null) {
-                dto.setPlatformName(entity.getPlatform().getName());
-            }
-            r.add(dto);
+            r.add(entityToDTO(entity));
         }
         return r;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public DatafileDTO changeDatafilePlatform(Long id, String platformName) throws PlatformNotFoundException {
+        return entityToDTO(retrocenterDatafileService.changeDatafilePlatform(id, platformName));
+    }
+
+    private DatafileDTO entityToDTO(DatafileEntity entity) {
+        DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
+                entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
+                entity.getComment(), entity.getId());
+        if (entity.getPlatform() != null) {
+            dto.setPlatformName(entity.getPlatform().getName());
+        }
+        return dto;
     }
 }

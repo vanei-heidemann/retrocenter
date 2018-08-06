@@ -1,7 +1,6 @@
 package br.com.javanei.retrocenter.datafile.persistence;
 
 import br.com.javanei.retrocenter.datafile.entity.DatafileEntity;
-import br.com.javanei.retrocenter.platform.entity.PlatformEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,5 +21,5 @@ public interface DatafileDAO extends JpaRepository<DatafileEntity, Long> {
 
     List<Long> findPlatformIDsByNameAndCatalog(@Param("name") String name, @Param("catalog") String catalog);
 
-    void updatePlatformFromNameAndCatalog(@Param("name") String name, @Param("catalog") String catalog, @Param("platform") PlatformEntity platform);
+    List<DatafileEntity> findByNameAndCatalogAndNullPlatform(@Param("name") String name, @Param("catalog") String catalog);
 }

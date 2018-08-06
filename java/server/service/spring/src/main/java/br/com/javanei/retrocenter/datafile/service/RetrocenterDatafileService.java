@@ -128,7 +128,11 @@ public class RetrocenterDatafileService {
         }
 
         if (changePlatforms) {
-            datafileDAO.updatePlatformFromNameAndCatalog(entity.getName(), entity.getCatalog(), entity.getPlatform());
+            List<DatafileEntity> datafiles = datafileDAO.findByNameAndCatalogAndNullPlatform(entity.getName(), entity.getCatalog());
+            for (DatafileEntity de : datafiles) {
+                de.setPlatform(entity.getPlatform());
+                datafileDAO.saveAndFlush(de);
+            }
         }
 
         return entity;
@@ -156,5 +160,28 @@ public class RetrocenterDatafileService {
         }
 
         return gameEntity;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public DatafileEntity changeDatafilePlatform(Long id, String platformName) throws PlatformNotFoundException {
+        LOG.debug("changeDatafilePlatform (id=" + id + ", platformName=" + platformName + ")");
+        PlatformDTO platform = platformService.findPlatform(platformName);
+        if (platform == null) {
+            throw new PlatformNotFoundException(platformName);
+        }
+        DatafileEntity entity = datafileDAO.getOne(id);
+        entity.setPlatform(new PlatformEntity(platform.getId()));
+        entity = datafileDAO.saveAndFlush(entity);
+        List<Long> ids = datafileDAO.findPlatformIDsByNameAndCatalog(entity.getName(), entity.getCatalog());
+        if (ids.isEmpty() || (ids.size() == 1 && ids.get(0).longValue() == platform.getId().longValue())) {
+            List<DatafileEntity> datafiles = datafileDAO.findByNameAndCatalogAndNullPlatform(entity.getName(), entity.getCatalog());
+            for (DatafileEntity de : datafiles) {
+                LOG.debug("Alterando também: id=" + de.getId() + ", name=" + de.getName()
+                        + ", catalog=" + de.getCatalog() + ", version=" + de.getVersion());
+                de.setPlatform(entity.getPlatform());
+                datafileDAO.saveAndFlush(de);
+            }
+        }
+        return entity;
     }
 }
