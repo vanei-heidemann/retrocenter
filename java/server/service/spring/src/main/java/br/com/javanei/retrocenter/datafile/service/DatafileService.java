@@ -21,6 +21,8 @@ import br.com.javanei.retrocenter.datafile.logiqx.service.LogiqxService;
 import br.com.javanei.retrocenter.datafile.mame.Mame;
 import br.com.javanei.retrocenter.datafile.mame.service.MameService;
 import br.com.javanei.retrocenter.datafile.persistence.DatafileDAO;
+import br.com.javanei.retrocenter.platform.entity.PlatformEntity;
+import br.com.javanei.retrocenter.platform.service.PlatformDTO;
 import br.com.javanei.retrocenter.platform.service.PlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,20 +147,49 @@ public class DatafileService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
-    public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, int page, int pageSize) {
-        LOG.info("find(name=" + name + ", catalog=" + catalog + ", page=" + page + ", pageSize=" + pageSize + ")");
+    public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, String platformName, int page, int pageSize) {
+        LOG.info("find(name=" + name + ", catalog=" + catalog + ", platformName=" + platformName + ", page=" + page
+                + ", pageSize=" + pageSize + ")");
+        boolean filterPlatform = false;
+        PlatformEntity platform = null;
+        if (platformName != null && !"null".equalsIgnoreCase(platformName)) {
+            PlatformDTO p = platformService.findPlatform(platformName);
+            if (p != null) {
+                platform = new PlatformEntity(p.getId());
+            }
+            filterPlatform = true;
+        } else if ("null".equalsIgnoreCase(platformName)) {
+            filterPlatform = true;
+        }
+
         PageRequest paging = PageRequest.of(page, pageSize, new Sort(Direction.ASC, "name"));
         Page<DatafileEntity> l;
         if (name != null) {
             if (catalog != null) {
-                l = datafileDAO.findByCatalogAndNameLike(catalog.name(), "%" + name + "%", paging);
+                if (filterPlatform) {
+                    l = datafileDAO.findByCatalogAndNameLikeAndPlatform(catalog.name(), "%" + name + "%", platform, paging);
+                } else {
+                    l = datafileDAO.findByCatalogAndNameLike(catalog.name(), "%" + name + "%", paging);
+                }
             } else {
-                l = datafileDAO.findByNameLike("%" + name + "%", paging);
+                if (filterPlatform) {
+                    l = datafileDAO.findByNameLikeAndPlatform("%" + name + "%", platform, paging);
+                } else {
+                    l = datafileDAO.findByNameLike("%" + name + "%", paging);
+                }
             }
         } else if (catalog != null) {
-            l = datafileDAO.findByCatalog(catalog.name(), paging);
+            if (filterPlatform) {
+                l = datafileDAO.findByCatalogAndPlatform(catalog.name(), platform, paging);
+            } else {
+                l = datafileDAO.findByCatalog(catalog.name(), paging);
+            }
         } else {
-            l = datafileDAO.findAll(paging);
+            if (filterPlatform) {
+                l = datafileDAO.findByPlatform(platform, paging);
+            } else {
+                l = datafileDAO.findAll(paging);
+            }
         }
         PaginatedResult<DatafileDTO> r = new PaginatedResult<>(page > 0, l.hasNext());
         for (DatafileEntity entity : l.getContent()) {
