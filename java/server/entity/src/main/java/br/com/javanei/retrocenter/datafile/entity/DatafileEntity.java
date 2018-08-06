@@ -28,7 +28,9 @@ import java.util.Set;
 })
 @NamedQueries({
         @NamedQuery(name = "DatafileEntity.findByUniqueFull", query = "SELECT o from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.version = :version"),
-        @NamedQuery(name = "DatafileEntity.findByUnique", query = "SELECT new DatafileEntity(id, name, catalog, version, description, author, date, email, homepage, url, comment) from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.version = :version")
+        @NamedQuery(name = "DatafileEntity.findByUnique", query = "SELECT new DatafileEntity(id, name, catalog, version, description, author, date, email, homepage, url, comment) from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.version = :version"),
+        @NamedQuery(name = "DatafileEntity.findPlatformIDsByNameAndCatalog", query = "SELECT DISTINCT (o.platform.id) from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.platform IS NOT NULL"),
+        @NamedQuery(name = "DatafileEntity.updatePlatformFromNameAndCatalog", query = "UPDATE DatafileEntity o SET o.platform = :platform WHERE name = :name AND o.catalog = :catalog AND o.platform IS NULL")
 })
 public class DatafileEntity implements Serializable {
     private static final long serialVersionUID = 1L;

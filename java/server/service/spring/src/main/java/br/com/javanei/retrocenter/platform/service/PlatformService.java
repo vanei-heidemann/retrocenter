@@ -48,33 +48,13 @@ public class PlatformService {
     @Transactional(propagation = Propagation.SUPPORTS)
     public PlatformDTO findPlatformByName(String name) {
         PlatformEntity entity = platformDAO.findByName(name);
-        if (entity != null) {
-            PlatformDTO p = new PlatformDTO(entity.getName(), entity.getShortName(), entity.getStorageFolder(), entity.getId());
-            Set<PlatformAltNameEntity> alts = entity.getAlternateNames();
-            if (!alts.isEmpty()) {
-                for (PlatformAltNameEntity alt : alts) {
-                    p.addAlternateName(alt.getAlternateName());
-                }
-            }
-            return p;
-        }
-        return null;
+        return entityToDTO(entity);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public PlatformDTO findPlatformByID(Long id) {
         PlatformEntity entity = platformDAO.getOne(id);
-        if (entity != null) {
-            PlatformDTO p = new PlatformDTO(entity.getName(), entity.getShortName(), entity.getStorageFolder(), entity.getId());
-            Set<PlatformAltNameEntity> alts = entity.getAlternateNames();
-            if (!alts.isEmpty()) {
-                for (PlatformAltNameEntity alt : alts) {
-                    p.addAlternateName(alt.getAlternateName());
-                }
-            }
-            return p;
-        }
-        return null;
+        return entityToDTO(entity);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -86,6 +66,10 @@ public class PlatformService {
                 entity = altEntity.getPlatform();
             }
         }
+        return entityToDTO(entity);
+    }
+
+    private PlatformDTO entityToDTO(PlatformEntity entity) {
         if (entity != null) {
             PlatformDTO p = new PlatformDTO(entity.getName(), entity.getShortName(), entity.getStorageFolder(), entity.getId());
             Set<PlatformAltNameEntity> alts = entity.getAlternateNames();

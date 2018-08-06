@@ -38,6 +38,10 @@ public class PlatformEntity implements Serializable {
     public PlatformEntity() {
     }
 
+    public PlatformEntity(Long id) {
+        this.id = id;
+    }
+
     public PlatformEntity(String name, String shortName, String storageFolder) {
         this.name = name;
         this.shortName = shortName;

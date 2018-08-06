@@ -2,6 +2,7 @@ package br.com.javanei.retrocenter.datafile.service;
 
 import br.com.javanei.retrocenter.common.DatafileCatalogEnum;
 import br.com.javanei.retrocenter.common.PaginatedResult;
+import br.com.javanei.retrocenter.common.PlatformNotFoundException;
 import br.com.javanei.retrocenter.datafile.clrmamepro.CMProDatafile;
 import br.com.javanei.retrocenter.datafile.clrmamepro.service.CMProService;
 import br.com.javanei.retrocenter.datafile.common.Datafile;
@@ -55,6 +56,9 @@ public class DatafileService {
         DatafileDTO datafile = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(),
                 entity.getDescription(), entity.getAuthor(), entity.getDate(), entity.getEmail(),
                 entity.getHomepage(), entity.getUrl(), entity.getComment(), entity.getId());
+        if (entity.getPlatform() != null) {
+            datafile.setPlatformName(entity.getPlatform().getName());
+        }
 
         for (DatafileArtifactEntity gameEntity : entity.getArtifacts()) {
             DatafileArtifact g = new DatafileArtifact(gameEntity.getName(), gameEntity.getDescription(),
@@ -79,7 +83,7 @@ public class DatafileService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Datafile create(DatafileObject datafileObject) {
+    public Datafile create(DatafileObject datafileObject) throws PlatformNotFoundException {
         LOG.info("create(" + datafileObject.getClass() + ")");
         Datafile datafile;
         if (datafileObject instanceof Mame) {
