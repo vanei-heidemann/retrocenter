@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,9 +136,13 @@ public class DatafileService {
         List<DatafileEntity> l = datafileDAO.findAll();
         List<DatafileDTO> r = new ArrayList<>(l.size());
         for (DatafileEntity entity : l) {
-            r.add(new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
+            DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
                     entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
-                    entity.getComment(), entity.getId()));
+                    entity.getComment(), entity.getId());
+            if (entity.getPlatform() != null) {
+                dto.setPlatformName(entity.getPlatform().getName());
+            }
+            r.add(dto);
         }
         return r;
     }
@@ -145,7 +150,7 @@ public class DatafileService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, int page, int pageSize) {
         LOG.info("find(name=" + name + ", catalog=" + catalog + ", page=" + page + ", pageSize=" + pageSize + ")");
-        PageRequest paging = new PageRequest(page, pageSize, new Sort(Sort.Direction.ASC, "name"));
+        PageRequest paging = PageRequest.of(page, pageSize, new Sort(Direction.ASC, "name"));
         Page<DatafileEntity> l;
         if (name != null) {
             if (catalog != null) {
@@ -160,9 +165,13 @@ public class DatafileService {
         }
         PaginatedResult<DatafileDTO> r = new PaginatedResult<>(page > 0, l.hasNext());
         for (DatafileEntity entity : l.getContent()) {
-            r.add(new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
+            DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
                     entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
-                    entity.getComment(), entity.getId()));
+                    entity.getComment(), entity.getId());
+            if (entity.getPlatform() != null) {
+                dto.setPlatformName(entity.getPlatform().getName());
+            }
+            r.add(dto);
         }
         return r;
     }
