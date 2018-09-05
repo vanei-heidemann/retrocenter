@@ -1,5 +1,7 @@
 package br.com.javanei.retrocenter.datafile.entity;
 
+import br.com.javanei.retrocenter.platform.entity.PlatformEntity;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -24,7 +28,9 @@ import java.util.Set;
 })
 @NamedQueries({
         @NamedQuery(name = "DatafileEntity.findByUniqueFull", query = "SELECT o from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.version = :version"),
-        @NamedQuery(name = "DatafileEntity.findByUnique", query = "SELECT new DatafileEntity(id, name, catalog, version, description, author, date, email, homepage, url, comment) from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.version = :version")
+        @NamedQuery(name = "DatafileEntity.findByUnique", query = "SELECT new DatafileEntity(id, name, catalog, version, description, author, date, email, homepage, url, comment) from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.version = :version"),
+        @NamedQuery(name = "DatafileEntity.findPlatformIDsByNameAndCatalog", query = "SELECT DISTINCT (o.platform.id) from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.platform IS NOT NULL"),
+        @NamedQuery(name = "DatafileEntity.findByNameAndCatalogAndNullPlatform", query = "SELECT DISTINCT o from DatafileEntity o WHERE name = :name AND o.catalog = :catalog AND o.platform IS NULL")
 })
 public class DatafileEntity implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -66,6 +72,10 @@ public class DatafileEntity implements Serializable {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REFRESH, CascadeType.REMOVE}, mappedBy = "datafile")
     private Set<DatafileArtifactEntity> artifacts = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH, optional = true)
+    @JoinColumn(name = "PLATFORM_ID")
+    private PlatformEntity platform;
 
     public DatafileEntity() {
     }
@@ -195,6 +205,14 @@ public class DatafileEntity implements Serializable {
 
     public void setArtifacts(Set<DatafileArtifactEntity> artifacts) {
         this.artifacts = artifacts;
+    }
+
+    public PlatformEntity getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(PlatformEntity platform) {
+        this.platform = platform;
     }
 
     @Override

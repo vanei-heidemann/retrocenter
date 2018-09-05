@@ -2,6 +2,7 @@ package br.com.javanei.retrocenter.datafile.service;
 
 import br.com.javanei.retrocenter.common.DatafileCatalogEnum;
 import br.com.javanei.retrocenter.common.PaginatedResult;
+import br.com.javanei.retrocenter.common.PlatformNotFoundException;
 import br.com.javanei.retrocenter.datafile.clrmamepro.CMProDatafile;
 import br.com.javanei.retrocenter.datafile.clrmamepro.service.CMProService;
 import br.com.javanei.retrocenter.datafile.common.Datafile;
@@ -20,12 +21,16 @@ import br.com.javanei.retrocenter.datafile.logiqx.service.LogiqxService;
 import br.com.javanei.retrocenter.datafile.mame.Mame;
 import br.com.javanei.retrocenter.datafile.mame.service.MameService;
 import br.com.javanei.retrocenter.datafile.persistence.DatafileDAO;
+import br.com.javanei.retrocenter.platform.entity.PlatformEntity;
+import br.com.javanei.retrocenter.platform.service.PlatformDTO;
+import br.com.javanei.retrocenter.platform.service.PlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,11 +55,16 @@ public class DatafileService {
     private RetrocenterDatafileService retrocenterDatafileService;
     @Autowired
     private DatafileDAO datafileDAO;
+    @Autowired
+    private PlatformService platformService;
 
     private static DatafileDTO toVO(DatafileEntity entity) {
         DatafileDTO datafile = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(),
                 entity.getDescription(), entity.getAuthor(), entity.getDate(), entity.getEmail(),
                 entity.getHomepage(), entity.getUrl(), entity.getComment(), entity.getId());
+        if (entity.getPlatform() != null) {
+            datafile.setPlatformName(entity.getPlatform().getName());
+        }
 
         for (DatafileArtifactEntity gameEntity : entity.getArtifacts()) {
             DatafileArtifact g = new DatafileArtifact(gameEntity.getName(), gameEntity.getDescription(),
@@ -79,7 +89,7 @@ public class DatafileService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Datafile create(DatafileObject datafileObject) {
+    public Datafile create(DatafileObject datafileObject) throws PlatformNotFoundException {
         LOG.info("create(" + datafileObject.getClass() + ")");
         Datafile datafile;
         if (datafileObject instanceof Mame) {
@@ -131,35 +141,75 @@ public class DatafileService {
         List<DatafileEntity> l = datafileDAO.findAll();
         List<DatafileDTO> r = new ArrayList<>(l.size());
         for (DatafileEntity entity : l) {
-            r.add(new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
-                    entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
-                    entity.getComment(), entity.getId()));
+            r.add(entityToDTO(entity));
         }
         return r;
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
-    public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, int page, int pageSize) {
-        LOG.info("find(name=" + name + ", catalog=" + catalog + ", page=" + page + ", pageSize=" + pageSize + ")");
-        PageRequest paging = new PageRequest(page, pageSize, new Sort(Sort.Direction.ASC, "name"));
+    public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, String platformName, int page, int pageSize) {
+        LOG.info("find(name=" + name + ", catalog=" + catalog + ", platformName=" + platformName + ", page=" + page
+                + ", pageSize=" + pageSize + ")");
+        boolean filterPlatform = false;
+        PlatformEntity platform = null;
+        if (platformName != null && !"null".equalsIgnoreCase(platformName)) {
+            PlatformDTO p = platformService.findPlatform(platformName);
+            if (p != null) {
+                platform = new PlatformEntity(p.getId());
+            }
+            filterPlatform = true;
+        } else if ("null".equalsIgnoreCase(platformName)) {
+            filterPlatform = true;
+        }
+
+        PageRequest paging = PageRequest.of(page, pageSize, new Sort(Direction.ASC, "name"));
         Page<DatafileEntity> l;
         if (name != null) {
             if (catalog != null) {
-                l = datafileDAO.findByCatalogAndNameLike(catalog.name(), "%" + name + "%", paging);
+                if (filterPlatform) {
+                    l = datafileDAO.findByCatalogAndNameLikeAndPlatform(catalog.name(), "%" + name + "%", platform, paging);
+                } else {
+                    l = datafileDAO.findByCatalogAndNameLike(catalog.name(), "%" + name + "%", paging);
+                }
             } else {
-                l = datafileDAO.findByNameLike("%" + name + "%", paging);
+                if (filterPlatform) {
+                    l = datafileDAO.findByNameLikeAndPlatform("%" + name + "%", platform, paging);
+                } else {
+                    l = datafileDAO.findByNameLike("%" + name + "%", paging);
+                }
             }
         } else if (catalog != null) {
-            l = datafileDAO.findByCatalog(catalog.name(), paging);
+            if (filterPlatform) {
+                l = datafileDAO.findByCatalogAndPlatform(catalog.name(), platform, paging);
+            } else {
+                l = datafileDAO.findByCatalog(catalog.name(), paging);
+            }
         } else {
-            l = datafileDAO.findAll(paging);
+            if (filterPlatform) {
+                l = datafileDAO.findByPlatform(platform, paging);
+            } else {
+                l = datafileDAO.findAll(paging);
+            }
         }
         PaginatedResult<DatafileDTO> r = new PaginatedResult<>(page > 0, l.hasNext());
         for (DatafileEntity entity : l.getContent()) {
-            r.add(new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
-                    entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
-                    entity.getComment(), entity.getId()));
+            r.add(entityToDTO(entity));
         }
         return r;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public DatafileDTO changeDatafilePlatform(Long id, String platformName) throws PlatformNotFoundException {
+        return entityToDTO(retrocenterDatafileService.changeDatafilePlatform(id, platformName));
+    }
+
+    private DatafileDTO entityToDTO(DatafileEntity entity) {
+        DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
+                entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),
+                entity.getComment(), entity.getId());
+        if (entity.getPlatform() != null) {
+            dto.setPlatformName(entity.getPlatform().getName());
+        }
+        return dto;
     }
 }

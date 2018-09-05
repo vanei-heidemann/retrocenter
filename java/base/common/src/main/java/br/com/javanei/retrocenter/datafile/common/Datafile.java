@@ -51,6 +51,8 @@ public class Datafile implements DatafileObject, Serializable {
 
     private Set<DatafileArtifact> artifacts = new HashSet<>();
 
+    private String platformName;
+
     public Datafile() {
     }
 
@@ -182,6 +184,14 @@ public class Datafile implements DatafileObject, Serializable {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getPlatformName() {
+        return platformName;
+    }
+
+    public void setPlatformName(String platformName) {
+        this.platformName = platformName;
     }
 
     @Override

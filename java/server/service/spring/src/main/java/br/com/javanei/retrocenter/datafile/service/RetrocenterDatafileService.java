@@ -1,5 +1,6 @@
 package br.com.javanei.retrocenter.datafile.service;
 
+import br.com.javanei.retrocenter.common.PlatformNotFoundException;
 import br.com.javanei.retrocenter.datafile.common.Datafile;
 import br.com.javanei.retrocenter.datafile.common.DatafileArtifact;
 import br.com.javanei.retrocenter.datafile.common.DatafileArtifactFile;
@@ -12,12 +13,17 @@ import br.com.javanei.retrocenter.datafile.persistence.DatafileArtifactDAO;
 import br.com.javanei.retrocenter.datafile.persistence.DatafileArtifactFileDAO;
 import br.com.javanei.retrocenter.datafile.persistence.DatafileDAO;
 import br.com.javanei.retrocenter.datafile.persistence.DatafileReleaseDAO;
+import br.com.javanei.retrocenter.platform.entity.PlatformEntity;
+import br.com.javanei.retrocenter.platform.service.PlatformDTO;
+import br.com.javanei.retrocenter.platform.service.PlatformService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -34,13 +40,23 @@ public class RetrocenterDatafileService {
     private DatafileReleaseDAO releaseDAO;
     @Autowired
     private RetrocenterDatafileService retrocenterDatafileService;
+    @Autowired
+    private PlatformService platformService;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public DatafileEntity create(Datafile datafile) {
+    public DatafileEntity create(Datafile datafile) throws PlatformNotFoundException {
         LOG.info("create(" + datafile.getName() + ", " + datafile.getCatalog() + ", " + datafile.getVersion() + ")");
         DatafileEntity entity = new DatafileEntity(datafile.getName(), datafile.getCatalog(), datafile.getVersion(),
                 datafile.getDescription(), datafile.getAuthor(), datafile.getDate(), datafile.getEmail(),
                 datafile.getHomepage(), datafile.getUrl(), datafile.getComment());
+        if (datafile.getPlatformName() != null) {
+            PlatformDTO platform = platformService.findPlatform(datafile.getName());
+            if (platform == null) {
+                throw new PlatformNotFoundException(datafile.getName());
+            }
+            entity.setPlatform(new PlatformEntity(platform.getId()));
+        }
+
         entity = retrocenterDatafileService.create(entity);
 
         int cont = 0;
@@ -76,6 +92,33 @@ public class RetrocenterDatafileService {
     public DatafileEntity create(DatafileEntity entity) {
         LOG.debug("create(name=" + entity.getName() + ", catalog=" + entity.getCatalog()
                 + ", version=" + entity.getVersion() + ")");
+        boolean changePlatforms = false;
+        List<Long> ids = datafileDAO.findPlatformIDsByNameAndCatalog(entity.getName(), entity.getCatalog());
+        if (entity.getPlatform() == null) {
+            // Tenta adivinhar a plataforma
+            if (ids.size() == 1) {
+                // Todos os datafiles com o mesmo nome que possuem plataforma, estão na mesma plataforma,
+                // então assume essa plataforma
+                entity.setPlatform(new PlatformEntity(ids.get(0)));
+            } else if (ids.size() > 1) {
+                // Há mais de uma plataforma definida para catalogos do mesmo nome, não é possível determinar
+                // qual o correto.
+                LOG.warn("Impossivel determinar a plataforma, pois foram encontradas " + ids.size()
+                        + " plataformas");
+            }
+        } else {
+            // Tentar alterar a plataforma dos Datafiles já existentes.
+            if (ids.isEmpty()) {
+                // Não há nenhum datafile com plataforma definida, então assume que todas pertencerão a plataforma
+                // informada.
+                changePlatforms = true;
+            } else if (ids.size() == 1 && ids.get(0).longValue() == entity.getPlatform().getId().longValue()) {
+                // Todas os datafiles com mesmo nome estão sem plataforma ou pertencem a plataforma informada,
+                // então iguala todos sem plataforma à plataforma informada.
+                changePlatforms = true;
+            }
+        }
+
         DatafileEntity old = datafileDAO.findByUnique(entity.getName(), entity.getCatalog(), entity.getVersion());
         if (old == null) {
             entity = datafileDAO.saveAndFlush(entity);
@@ -83,6 +126,15 @@ public class RetrocenterDatafileService {
             LOG.debug("Datafile already exist");
             entity.setId(old.getId());
         }
+
+        if (changePlatforms) {
+            List<DatafileEntity> datafiles = datafileDAO.findByNameAndCatalogAndNullPlatform(entity.getName(), entity.getCatalog());
+            for (DatafileEntity de : datafiles) {
+                de.setPlatform(entity.getPlatform());
+                datafileDAO.saveAndFlush(de);
+            }
+        }
+
         return entity;
     }
 
@@ -108,5 +160,28 @@ public class RetrocenterDatafileService {
         }
 
         return gameEntity;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public DatafileEntity changeDatafilePlatform(Long id, String platformName) throws PlatformNotFoundException {
+        LOG.debug("changeDatafilePlatform (id=" + id + ", platformName=" + platformName + ")");
+        PlatformDTO platform = platformService.findPlatform(platformName);
+        if (platform == null) {
+            throw new PlatformNotFoundException(platformName);
+        }
+        DatafileEntity entity = datafileDAO.getOne(id);
+        entity.setPlatform(new PlatformEntity(platform.getId()));
+        entity = datafileDAO.saveAndFlush(entity);
+        List<Long> ids = datafileDAO.findPlatformIDsByNameAndCatalog(entity.getName(), entity.getCatalog());
+        if (ids.isEmpty() || (ids.size() == 1 && ids.get(0).longValue() == platform.getId().longValue())) {
+            List<DatafileEntity> datafiles = datafileDAO.findByNameAndCatalogAndNullPlatform(entity.getName(), entity.getCatalog());
+            for (DatafileEntity de : datafiles) {
+                LOG.debug("Alterando também: id=" + de.getId() + ", name=" + de.getName()
+                        + ", catalog=" + de.getCatalog() + ", version=" + de.getVersion());
+                de.setPlatform(entity.getPlatform());
+                datafileDAO.saveAndFlush(de);
+            }
+        }
+        return entity;
     }
 }

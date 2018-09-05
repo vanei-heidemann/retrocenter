@@ -2,6 +2,7 @@ package br.com.javanei.retrocenter.datafile.service;
 
 import br.com.javanei.retrocenter.common.ArtifactFileTypeEnum;
 import br.com.javanei.retrocenter.common.DatafileCatalogEnum;
+import br.com.javanei.retrocenter.common.PlatformNotFoundException;
 import br.com.javanei.retrocenter.datafile.common.Datafile;
 import br.com.javanei.retrocenter.datafile.common.DatafileArtifact;
 import br.com.javanei.retrocenter.datafile.common.DatafileArtifactFile;
@@ -14,15 +15,21 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.AdditionalAnswers;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 @ContextConfiguration(classes = {DatafileServiceConfiguration.class})
 public class RetrocenterDatafileServiceTest {
     private static Datafile datafile;
-    @Autowired
+    @InjectMocks
+    private RetrocenterDatafileService retroDatafileService;
+    @Mock
     private RetrocenterDatafileService retrocenterDatafileService;
 
     @BeforeClass
@@ -59,8 +66,13 @@ public class RetrocenterDatafileServiceTest {
     }
 
     @Test
-    public void create() {
-        DatafileEntity d = retrocenterDatafileService.create(datafile);
+    public void create() throws PlatformNotFoundException {
+        Mockito.when(retrocenterDatafileService.createArtifact(ArgumentMatchers.any(DatafileArtifactEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+        Mockito.when(retrocenterDatafileService.create(ArgumentMatchers.any(DatafileEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+
+        DatafileEntity d = retroDatafileService.create(datafile);
         Assert.assertEquals("name", "name 01", d.getName());
         Assert.assertEquals("catalog", DatafileCatalogEnum.NoIntro.name(), d.getCatalog());
         Assert.assertEquals("version", "1.00", d.getVersion());
@@ -74,8 +86,13 @@ public class RetrocenterDatafileServiceTest {
     }
 
     @Test
-    public void createGame() {
-        DatafileEntity d = retrocenterDatafileService.create(datafile);
+    public void createGame() throws PlatformNotFoundException {
+        Mockito.when(retrocenterDatafileService.createArtifact(ArgumentMatchers.any(DatafileArtifactEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+        Mockito.when(retrocenterDatafileService.create(ArgumentMatchers.any(DatafileEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+
+        DatafileEntity d = retroDatafileService.create(datafile);
         DatafileArtifactEntity game = d.getArtifacts().iterator().next();
         Assert.assertEquals("name", "game 01", game.getName());
         Assert.assertEquals("isbios", "no", game.getIsbios());
@@ -89,9 +106,14 @@ public class RetrocenterDatafileServiceTest {
     }
 
     @Test
-    public void createRom() {
+    public void createRom() throws PlatformNotFoundException {
+        Mockito.when(retrocenterDatafileService.createArtifact(ArgumentMatchers.any(DatafileArtifactEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+        Mockito.when(retrocenterDatafileService.create(ArgumentMatchers.any(DatafileEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+
         DatafileArtifactFileEntity gf = null;
-        DatafileEntity d = retrocenterDatafileService.create(datafile);
+        DatafileEntity d = retroDatafileService.create(datafile);
         DatafileArtifactEntity game = d.getArtifacts().iterator().next();
         for (DatafileArtifactFileEntity g : game.getFiles()) {
             if (g.getType().equals(ArtifactFileTypeEnum.ROM.name())) {
@@ -113,9 +135,14 @@ public class RetrocenterDatafileServiceTest {
     }
 
     @Test
-    public void createDisk() {
+    public void createDisk() throws PlatformNotFoundException {
+        Mockito.when(retrocenterDatafileService.createArtifact(ArgumentMatchers.any(DatafileArtifactEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+        Mockito.when(retrocenterDatafileService.create(ArgumentMatchers.any(DatafileEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+
         DatafileArtifactFileEntity gf = null;
-        DatafileEntity d = retrocenterDatafileService.create(datafile);
+        DatafileEntity d = retroDatafileService.create(datafile);
         DatafileArtifactEntity game = d.getArtifacts().iterator().next();
         for (DatafileArtifactFileEntity g : game.getFiles()) {
             if (g.getType().equals(ArtifactFileTypeEnum.DISK.name())) {
@@ -137,9 +164,14 @@ public class RetrocenterDatafileServiceTest {
     }
 
     @Test
-    public void createSample() {
+    public void createSample() throws PlatformNotFoundException {
+        Mockito.when(retrocenterDatafileService.createArtifact(ArgumentMatchers.any(DatafileArtifactEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+        Mockito.when(retrocenterDatafileService.create(ArgumentMatchers.any(DatafileEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+
         DatafileArtifactFileEntity gf = null;
-        DatafileEntity d = retrocenterDatafileService.create(datafile);
+        DatafileEntity d = retroDatafileService.create(datafile);
         DatafileArtifactEntity game = d.getArtifacts().iterator().next();
         for (DatafileArtifactFileEntity g : game.getFiles()) {
             if (g.getType().equals(ArtifactFileTypeEnum.SAMPLE.name())) {
@@ -161,8 +193,13 @@ public class RetrocenterDatafileServiceTest {
     }
 
     @Test
-    public void createRelease() {
-        DatafileEntity d = retrocenterDatafileService.create(datafile);
+    public void createRelease() throws PlatformNotFoundException {
+        Mockito.when(retrocenterDatafileService.createArtifact(ArgumentMatchers.any(DatafileArtifactEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+        Mockito.when(retrocenterDatafileService.create(ArgumentMatchers.any(DatafileEntity.class)))
+                .then(AdditionalAnswers.returnsFirstArg());
+
+        DatafileEntity d = retroDatafileService.create(datafile);
         DatafileArtifactEntity game = d.getArtifacts().iterator().next();
         DatafileReleaseEntity release = game.getReleases().iterator().next();
         Assert.assertEquals("name", "release 01", release.getName());
