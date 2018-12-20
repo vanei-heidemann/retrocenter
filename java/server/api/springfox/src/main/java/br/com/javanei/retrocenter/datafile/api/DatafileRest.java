@@ -62,7 +62,7 @@ public class DatafileRest {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiOperation(value = "Return the xml file")
+    @ApiOperation(value = "Return the JSON file")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Ok"),
             @ApiResponse(code = 404, message = "Datafile not found")
@@ -76,7 +76,7 @@ public class DatafileRest {
     }
 
     @RequestMapping(value = "/{id}/xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
-    @ApiOperation(value = "Return the xml file")
+    @ApiOperation(value = "Return the XML file")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Ok"),
             @ApiResponse(code = 404, message = "Datafile not found")
