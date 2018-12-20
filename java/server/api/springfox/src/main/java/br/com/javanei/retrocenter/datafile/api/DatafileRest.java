@@ -89,7 +89,7 @@ public class DatafileRest {
         return ResponseEntity.notFound().build();
     }
 
-    @RequestMapping(value = "/{id}/platform", method = RequestMethod.PUT, produces = MediaType.APPLICATION_XML_VALUE,
+    @RequestMapping(value = "/{id}/platform", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ApiOperation(value = "Updates the datafile platform")
     @ApiResponses({
