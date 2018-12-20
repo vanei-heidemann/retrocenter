@@ -239,6 +239,19 @@ public class DatafileService {
         return entityToDTO(retrocenterDatafileService.changeDatafilePlatform(id, platformName));
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public PaginatedResult<DatafileDTO> changeDatafilesPlatform(Long platformId, List<Long> dataFiles) throws PlatformNotFoundException {
+        PlatformDTO platform = platformService.findPlatformByID(platformId);
+        if (platform == null) {
+            throw new PlatformNotFoundException(platformId);
+        }
+        PaginatedResult<DatafileDTO> result = new PaginatedResult<>();
+        for (Long id : dataFiles) {
+            result.add(entityToDTO(retrocenterDatafileService.changeDatafilePlatform(id, platform.getName())));
+        }
+        return result;
+    }
+
     private DatafileDTO entityToDTO(DatafileEntity entity) {
         DatafileDTO dto = new DatafileDTO(entity.getName(), entity.getCatalog(), entity.getVersion(), entity.getDescription(),
                 entity.getAuthor(), entity.getDate(), entity.getEmail(), entity.getHomepage(), entity.getUrl(),

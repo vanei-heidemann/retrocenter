@@ -4,6 +4,9 @@ import br.com.javanei.retrocenter.ErrorResponse;
 import br.com.javanei.retrocenter.RetroCenterApiConfig;
 import br.com.javanei.retrocenter.common.ArtifactFileTypeEnum;
 import br.com.javanei.retrocenter.common.PaginatedResult;
+import br.com.javanei.retrocenter.common.PlatformNotFoundException;
+import br.com.javanei.retrocenter.datafile.service.DatafileDTO;
+import br.com.javanei.retrocenter.datafile.service.DatafileService;
 import br.com.javanei.retrocenter.platform.Platform;
 import br.com.javanei.retrocenter.platform.service.PlatformArtifactFileDTO;
 import br.com.javanei.retrocenter.platform.service.PlatformArtifactFileImportHistoryDTO;
@@ -44,6 +47,8 @@ public class PlatformRest {
     private PlatformService service;
     @Autowired
     private PlatformArtifactFileService fileService;
+    @Autowired
+    private DatafileService datafileService;
     @Autowired
     private RetroCenterApiConfig config;
 
@@ -132,6 +137,19 @@ public class PlatformRest {
     ) throws Exception {
         PaginatedResult<PlatformArtifactFileDTO> result = fileService.findFilesByPlatform(id, page, pageSize, showInfo);
         return ResponseEntity.ok(result);
+    }
+
+    @RequestMapping(value = "/{id}/datafiles", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
+            consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ApiOperation(value = "Updates the datafiles platform")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 404, message = "Datafile or platform not found")
+    })
+    public ResponseEntity<PaginatedResult<DatafileDTO>> setPlatformInDatafile(@PathVariable Long id,
+                                                                              @RequestBody(required = true) List<Long> dataFiles) throws PlatformNotFoundException {
+        LOG.info("setPlatformInDatafile(" + id + ", " + dataFiles + ")");
+        return new ResponseEntity(datafileService.changeDatafilesPlatform(id, dataFiles), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{id}/import-history", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
