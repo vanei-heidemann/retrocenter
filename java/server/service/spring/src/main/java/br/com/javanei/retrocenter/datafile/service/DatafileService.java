@@ -147,7 +147,8 @@ public class DatafileService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
-    public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, String platformName, int page, int pageSize) {
+    public PaginatedResult<DatafileDTO> find(String name, DatafileCatalogEnum catalog, String platformName,
+                                             int page, int pageSize, String sort) {
         LOG.info("find(name=" + name + ", catalog=" + catalog + ", platformName=" + platformName + ", page=" + page
                 + ", pageSize=" + pageSize + ")");
         boolean filterPlatform = false;
@@ -162,7 +163,38 @@ public class DatafileService {
             filterPlatform = true;
         }
 
-        PageRequest paging = PageRequest.of(page, pageSize, new Sort(Direction.ASC, "name"));
+        Direction sortDirection = Direction.ASC;
+        String sortField;
+        switch (sort) {
+            case "id":
+                sortField = "id";
+                break;
+            case "-id":
+                sortField = "id";
+                sortDirection = Direction.DESC;
+                break;
+            case "catalog":
+                sortField = "catalog";
+                break;
+            case "-catalog":
+                sortField = "catalog";
+                sortDirection = Direction.DESC;
+                break;
+            case "platformName":
+                sortField = "platform.name";
+                break;
+            case "-platformName":
+                sortField = "platform.name";
+                sortDirection = Direction.DESC;
+                break;
+            case "-name":
+                sortField = "name";
+                sortDirection = Direction.DESC;
+                break;
+            default:
+                sortField = "name";
+        }
+        PageRequest paging = PageRequest.of(page, pageSize, new Sort(sortDirection, sortField));
         Page<DatafileEntity> l;
         if (name != null) {
             if (catalog != null) {
