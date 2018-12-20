@@ -165,34 +165,38 @@ public class DatafileService {
 
         Direction sortDirection = Direction.ASC;
         String sortField;
-        switch (sort) {
-            case "id":
-                sortField = "id";
-                break;
-            case "-id":
-                sortField = "id";
-                sortDirection = Direction.DESC;
-                break;
-            case "catalog":
-                sortField = "catalog";
-                break;
-            case "-catalog":
-                sortField = "catalog";
-                sortDirection = Direction.DESC;
-                break;
-            case "platformName":
-                sortField = "platform.name";
-                break;
-            case "-platformName":
-                sortField = "platform.name";
-                sortDirection = Direction.DESC;
-                break;
-            case "-name":
-                sortField = "name";
-                sortDirection = Direction.DESC;
-                break;
-            default:
-                sortField = "name";
+        if (sort != null) {
+            switch (sort) {
+                case "id":
+                    sortField = "id";
+                    break;
+                case "-id":
+                    sortField = "id";
+                    sortDirection = Direction.DESC;
+                    break;
+                case "catalog":
+                    sortField = "catalog";
+                    break;
+                case "-catalog":
+                    sortField = "catalog";
+                    sortDirection = Direction.DESC;
+                    break;
+                case "platformName":
+                    sortField = "platform.name";
+                    break;
+                case "-platformName":
+                    sortField = "platform.name";
+                    sortDirection = Direction.DESC;
+                    break;
+                case "-name":
+                    sortField = "name";
+                    sortDirection = Direction.DESC;
+                    break;
+                default:
+                    sortField = "name";
+            }
+        } else {
+            sortField = "name";
         }
         PageRequest paging = PageRequest.of(page, pageSize, new Sort(sortDirection, sortField));
         Page<DatafileEntity> l;
