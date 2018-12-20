@@ -54,12 +54,12 @@ public class DatafileRest {
     public ResponseEntity<PaginatedResult<DatafileDTO>> find(
             @ApiParam(name = "page", required = false) @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
             @ApiParam(name = "pageSize", defaultValue = "100", required = true) @RequestParam(name = "pageSize", defaultValue = "100") Integer pageSize,
+            @ApiParam(name = "sort", required = false, defaultValue = "name", allowableValues = "id,-id,name,-name,catalog,-catalog,platformName,-platformName")
+            @RequestParam(name = "sort", required = false, defaultValue = "name") String sort,
             @ApiParam(name = "name", required = false) @RequestParam(name = "name", required = false) String name,
             @ApiParam(name = "catalog", required = false) @RequestParam(name = "catalog", required = false) DatafileCatalogEnum catalog,
             @ApiParam(name = "platform", required = false, value = "To list the data files without platform, enter the value \"null\"")
-            @RequestParam(name = "platform", required = false) String platform,
-            @ApiParam(name = "sort", required = false, allowableValues = "id,-id,name,-name,catalog,-catalog,platformName,-platformName")
-            @RequestParam(name = "sort", required = false) String sort
+            @RequestParam(name = "platform", required = false) String platform
     ) {
         return ResponseEntity.ok(service.find(name, catalog, platform, page, pageSize, sort));
     }
